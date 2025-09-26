@@ -1,0 +1,116 @@
+/* frontend/src/components/DashboardGenerator.css */
+.dashboard-generator {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.generator-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 0.5rem;
+}
+
+.title-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  color: #3b82f6;
+}
+
+.prompt-section {
+  background: white;
+  border-radius: 1rem;
+  padding: 2rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  margin-bottom: 3rem;
+}
+
+.prompt-input {
+  width: 100%;
+  min-height: 120px;
+  padding: 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  resize: vertical;
+  transition: border-color 0.2s;
+}
+
+.prompt-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.generate-button {
+  margin-top: 1rem;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: white;
+  border: none;
+  padding: 0.75rem 2rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.generate-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 15px rgba(59, 130, 246, 0.3);
+}
+
+.export-buttons {
+  display: flex;
+  gap: 1rem;
+}
+
+.export-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.export-button:hover:not(:disabled) {
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.dashboard-canvas-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.dashboard-canvas {
+  max-width: 100%;
+  height: auto;
+}

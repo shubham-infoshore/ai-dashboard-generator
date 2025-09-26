@@ -1,0 +1,215 @@
+// frontend/src/components/DashboardCanvas.tsx
+import React, { useEffect, useRef } from 'react';
+import { fabric } from 'fabric';
+import { DashboardConfig, DashboardComponent } from '../../../shared/types/dashboard';
+
+interface DashboardCanvasProps {
+  config: DashboardConfig;
+  onCanvasReady: (canvas: fabric.Canvas) => void;
+}
+
+export const DashboardCanvas: React.FC<DashboardCanvasProps> = ({
+  config,
+  onCanvasReady
+}) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const fabricCanvasRef = useRef<fabric.Canvas | null>(null);
+
+  useEffect(() => {
+    if (!canvasRef.current) return;
+
+    // Initialize Fabric.js canvas with 16:9 aspect ratio
+    const canvas = new fabric.Canvas(canvasRef.current, {
+      width: 800,
+      height: 450, // 16:9 aspect ratio
+      backgroundColor: config.theme.backgroundColor
+    });
+
+    fabricCanvasRef.current = canvas;
+    onCanvasReady(canvas);
+
+    // Render dashboard components
+    renderComponents(canvas, config);
+
+    return () => {
+      canvas.dispose();
+    };
+  }, [config, onCanvasReady]);
+
+  const renderComponents = (canvas: fabric.Canvas, config: DashboardConfig) => {
+    canvas.clear();
+    canvas.setBackgroundColor(config.theme.backgroundColor, canvas.renderAll.bind(canvas));
+
+    config.components.forEach(component => {
+      renderComponent(canvas, component, config.theme);
+    });
+  };
+
+  const renderComponent = (
+    canvas: fabric.Canvas, 
+    component: DashboardComponent, 
+    theme: any
+  ) => {
+    const { position, size, style } = component;
+
+    // Create background rectangle
+    const rect = new fabric.Rect({
+      left: position.x,
+      top: position.y,
+      width: size.width,
+      height: size.height,
+      fill: style.backgroundColor,
+      stroke: style.borderColor,
+      strokeWidth: style.borderWidth,
+      rx: style.borderRadius,
+      ry: style.borderRadius
+    });
+
+    canvas.add(rect);
+
+    // Add component title
+    if (component.title) {
+      const title = new fabric.Text(component.title, {
+        left: position.x + 10,
+        top: position.y + 10,
+        fontSize: 16,
+        fontFamily: theme.fontFamily,
+        fill: theme.textColor,
+        fontWeight: 'bold'
+      });
+      canvas.add(title);
+    }
+
+    // Render component content based on type
+    switch (component.type) {
+      case 'kpi':
+        renderKPI(canvas, component, theme);
+        break;
+      case 'chart':
+        renderChart(canvas, component, theme);
+        break;
+      case 'table':
+        renderTable(canvas, component, theme);
+        break;
+    }
+  };
+
+  const renderKPI = (canvas: fabric.Canvas, component: DashboardComponent, theme: any) => {
+    const { position, size, data } = component;
+    
+    // Main KPI value
+    const value = new fabric.Text(
+      `${data.value} ${data.unit || ''}`,
+      {
+        left: position.x + size.width / 2,
+        top: position.y + size.height / 2 - 10,
+        fontSize: 32,
+        fontFamily: theme.fontFamily,
+        fill: theme.primaryColor,
+        fontWeight: 'bold',
+        originX: 'center',
+        originY: 'center'
+      }
+    );
+    canvas.add(value);
+
+    // Trend indicator
+    if (data.trend) {
+      const trendColor = data.trend.direction === 'up' ? '#10B981' : 
+                        data.trend.direction === 'down' ? '#EF4444' : '#6B7280';
+      const trendText = new fabric.Text(
+        `${data.trend.direction === 'up' ? '↑' : data.trend.direction === 'down' ? '↓' : '→'} ${data.trend.percentage}%`,
+        {
+          left: position.x + size.width / 2,
+          top: position.y + size.height - 30,
+          fontSize: 14,
+          fontFamily: theme.fontFamily,
+          fill: trendColor,
+          originX: 'center'
+        }
+      );
+      canvas.add(trendText);
+    }
+  };
+
+  const renderChart = (canvas: fabric.Canvas, component: DashboardComponent, theme: any) => {
+    const { position, size, data } = component;
+    
+    if (data.chartType === 'bar' && data.datasets?.[0]) {
+      const dataset = data.datasets[0];
+      const maxValue = Math.max(...dataset.data);
+      const barWidth = (size.width - 60) / dataset.data.length;
+      
+      dataset.data.forEach((value, index) => {
+        const barHeight = (value / maxValue) * (size.height - 80);
+        const barX = position.x + 30 + (index * barWidth) + (barWidth * 0.1);
+        const barY = position.y + size.height - 40 - barHeight;
+        
+        // Bar rectangle
+        const bar = new fabric.Rect({
+          left: barX,
+          top: barY,
+          width: barWidth * 0.8,
+          height: barHeight,
+          fill: Array.isArray(dataset.backgroundColor) ? 
+                dataset.backgroundColor[index] : dataset.backgroundColor || theme.primaryColor,
+          rx: 2,
+          ry: 2
+        });
+        canvas.add(bar);
+        
+        // Bar label
+        if (dataset.labels?.[index]) {
+          const label = new fabric.Text(dataset.labels[index], {
+            left: barX + (barWidth * 0.4),
+            top: position.y + size.height - 20,
+            fontSize: 12,
+            fontFamily: theme.fontFamily,
+            fill: theme.textColor,
+            originX: 'center'
+          });
+          canvas.add(label);
+        }
+        
+        // Value label
+        const valueLabel = new fabric.Text(value.toString(), {
+          left: barX + (barWidth * 0.4),
+          top: barY - 15,
+          fontSize: 10,
+          fontFamily: theme.fontFamily,
+          fill: theme.textColor,
+          originX: 'center'
+        });
+        canvas.add(valueLabel);
+      });
+    }
+  };
+
+  const renderTable = (canvas: fabric.Canvas, component: DashboardComponent, theme: any) => {
+    // Simplified table rendering - would need more complex implementation for full tables
+    const placeholder = new fabric.Text('Table Component', {
+      left: component.position.x + component.size.width / 2,
+      top: component.position.y + component.size.height / 2,
+      fontSize: 16,
+      fontFamily: theme.fontFamily,
+      fill: theme.textColor,
+      originX: 'center',
+      originY: 'center'
+    });
+    canvas.add(placeholder);
+  };
+
+  return (
+    <div className="dashboard-canvas-container">
+      <canvas
+        ref={canvasRef}
+        className="dashboard-canvas"
+        style={{
+          border: '1px solid #e5e7eb',
+          borderRadius: '8px',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+        }}
+      />
+    </div>
+  );
+};
